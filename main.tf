@@ -3,39 +3,45 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Name: "dual-stack"
+      Name : "dual-stack"
     }
   }
 }
 
-# FIXME: Is a depends_on statement needed anywhere?
-resource "aws_internet_gateway" "igw" {
-  vpc_id = dual_stack_vpc.id
+# # FIXME: Is a depends_on statement needed anywhere?
+# resource "aws_internet_gateway" "igw" {
+#   vpc_id = dual_stack_vpc.id
 
-}
+# }
 
-# TODO:
-resource "aws_route_table" "rt" {
-  vpc_id = dual_stack_vpc.id
+# # TODO:
+# resource "aws_route_table" "rt" {
+#   vpc_id = dual_stack_vpc.id
 
-}
+# }
 
-resource "aws_vpc" "main" {
-  cidr_block = var.cidr_block
+# # TODO:
+# resource "aws_egress_only_internet_gateway" "eigw" {
+#   vpc_id = dual_stack_vpc.id
+# }
 
-}
+# # TODO:
+# resource "aws_nat_gateway" "natgw" {
+#   subnet_id = private_ipv4_subnet.id
+# }
 
-module "dual_stack_vpc" { // FIXME: Should this be declared as a resource?
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.19.0"
+# # TODO:
+# resource "aws_subnet" "private_ipv4_subnet" {
+#   vpc_id = dual_stack_vpc.id
 
-  name = "dual-stack-vpc"
-  cidr = var.cidr_block # FIXME: Should this be a variable? How do people change variables (terraform.tfvars?)
+#   assign_ipv6_address_on_creation = true
+# }
 
-  azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
-  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnets  = ["10.0.101.0/24"]
-
-  enable_dns_hostnames = true
-  enable_dns_support = true
+# TODO: Which variable should the user be able to customize
+# TODO: What should I output other than the VPC ID?
+resource "aws_vpc" "dual_stack_vpc" {
+  cidr_block                       = var.ipv4_cidr_block
+  assign_generated_ipv6_cidr_block = true
+  instance_tenancy                 = "default" # allows shared tenancy with instances from other AWS accounts
+  enable_dns_hostnames             = true      # IPv6 DNS hostnames are not supported
 }
